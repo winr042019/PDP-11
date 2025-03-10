@@ -13,7 +13,8 @@ void b_write (address adr, byte val);        //  пишем значение (б
 byte b_read (address adr);                   //  читаем байт по адресу adr и возвращаем его
 void w_write (address adr, word val);        //  пишем значение (слово) val по адресу adr
 word w_read (address adr);                   //  читаем слово по адресу adr и возвращаем его
-void load_data();                            //  считываем данные записываем их в массив mem
+void load_file(FILE * file);                 //  считываем данные из файла
+void load_data(const char * filename);       //  считываем данные записываем их в массив mem
 void mem_dump(address adr, int size);        //  печатаем часть массива mem
 
 void test_mem() {
@@ -80,7 +81,7 @@ void test_mem() {
 int main() {
     // test_mem();
 
-    load_data();
+    load_data("data.txt");
 
     mem_dump(0x40, 20);
     printf("\n");
@@ -108,17 +109,25 @@ word w_read (address adr) {
     return w & 0xFFFF;
 }
 
-void load_data() {
+void load_file(FILE * file) {
     address adr = 0;
     int N = 0;
     byte b = 0;
-    while (scanf("%hx", &adr) != EOF) {
-        scanf("%x", &N);
+    while (fscanf(file, "%hx", &adr) != EOF) {
+        fscanf(file, "%x", &N);
         for (int i = 0; i < N; i++) {
-            scanf("%02hhx", &b);
+            fscanf(file, "%02hhx", &b);
             b_write(adr + i, b);
         }
     }
+}
+
+void load_data(const char * filename) {
+    FILE * file  = fopen(filename, "r");
+    if (file == NULL)
+        perror(filename);
+    load_file(file);
+    fclose(file);
 }
 
 void mem_dump(address adr, int size) {
