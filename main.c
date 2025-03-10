@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <assert.h>
 
-typedef char byte;
-typedef short int word;
+typedef unsigned char byte;
+typedef unsigned short int word;
 typedef word address;
 
 #define MEMSIZE (64*1024)
@@ -55,11 +55,25 @@ void test_mem() {
     wres = w_read(a);
     // тут полезно написать отладочную печать a, w, wres
     fprintf(stderr, "a=%06o w=%04x wres=%04x\n", a, w, wres);
-    fprintf(stderr, "a=%06o b1=%02hhx b0=%02hhx wres=%04x\n", a, b1, b0, wres);
+    fprintf(stderr, "a=%06o b1=%02hhx b0=%02hhx wres=%04hx\n", a, b1, b0, wres);
     assert(w == wres);
 
+   // пишем 1 слово, читаем 2 байта
+    fprintf(stderr, "Пишем слово, читаем 2 байта \n");
+    a = 6;        // другой адрес
+    w = 0xa1b2;
+    // little-endian, младшие разряды по меньшему адресу
+    b0 = 0xb2;
+    b1 = 0xa1;
+    w_write(a, w);
+    byte b0res = b_read(a);
+    byte b1res = b_read(a+1);
+    wres = w_read(a);
+    // тут полезно написать отладочную печать a, w, wres
+    fprintf(stderr, "a=%06o b1=%02hhx b0=%02hhx wres=%04x\n", a, b1, b0, w);
+    assert(b0 == b0res);
+    assert(b1 == b1res);
 
-    // еще тесты
 }
 
 int main()
