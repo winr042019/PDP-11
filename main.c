@@ -13,6 +13,8 @@ void b_write (address adr, byte val);        //  пишем значение (б
 byte b_read (address adr);                   //  читаем байт по адресу adr и возвращаем его
 void w_write (address adr, word val);        //  пишем значение (слово) val по адресу adr
 word w_read (address adr);                   //  читаем слово по адресу adr и возвращаем его
+void load_data();                            //  считываем данные записываем их в массив mem
+void mem_dump(address adr, int size);        //  печатаем часть массива mem
 
 void test_mem() {
     address a;
@@ -73,12 +75,17 @@ void test_mem() {
     fprintf(stderr, "a=%06o b1=%02hhx b0=%02hhx wres=%04x\n", a, b1, b0, w);
     assert(b0 == b0res);
     assert(b1 == b1res);
-
 }
 
-int main()
-{
-    test_mem();
+int main() {
+    // test_mem();
+
+    load_data();
+
+    mem_dump(0x40, 20);
+    printf("\n");
+    mem_dump(0x200, 0x26);
+
     return 0;
 }
 
@@ -99,4 +106,23 @@ word w_read (address adr) {
     word w = mem[adr + 1] << 8;
     w |= mem[adr] & 255;
     return w & 0xFFFF;
+}
+
+void load_data() {
+    address adr = 0;
+    int N = 0;
+    byte b = 0;
+    while (scanf("%hx", &adr) != EOF) {
+        scanf("%x", &N);
+        for (int i = 0; i < N; i++) {
+            scanf("%02hhx", &b);
+            b_write(adr + i, b);
+        }
+    }
+}
+
+void mem_dump(address adr, int size) {
+    for (int i = 0; i < size; i += 2) {
+        printf("%06o: %06o %04x\n", adr + i, w_read(adr + i), w_read(adr + i)); 
+    }
 }
