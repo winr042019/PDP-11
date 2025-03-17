@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
+#include <stdarg.h>
 
 typedef unsigned char byte;
 typedef unsigned short int word;
@@ -7,15 +8,33 @@ typedef word address;
 
 #define MEMSIZE (64*1024)
 
-byte mem[MEMSIZE];
+static byte mem[MEMSIZE];
 
-void b_write (address adr, byte val);        //  пишем значение (байт) val по адресу adr
-byte b_read (address adr);                   //  читаем байт по адресу adr и возвращаем его
-void w_write (address adr, word val);        //  пишем значение (слово) val по адресу adr
-word w_read (address adr);                   //  читаем слово по адресу adr и возвращаем его
-void load_file(FILE * file);                 //  считываем данные из файла
-void load_data(const char * filename);       //  считываем данные записываем их в массив mem
-void mem_dump(address adr, int size);        //  печатаем часть массива mem
+enum log_levels {
+    ERROR    = 0,
+    WARNING  = 1,
+    INFO     = 2,
+    TRACE    = 3,
+    DEBUG    = 4
+};
+
+static int log_level = ERROR;
+
+void b_write (address adr, byte val);               //  пишем значение (байт) val по адресу adr
+byte b_read (address adr);                          //  читаем байт по адресу adr и возвращаем его
+void w_write (address adr, word val);               //  пишем значение (слово) val по адресу adr
+word w_read (address adr);                          //  читаем слово по адресу adr и возвращаем его
+void load_file(FILE * file);                        //  считываем данные из файла
+void load_data(const char * filename);              //  считываем данные записываем их в массив mem
+void mem_dump(address adr, int size);               //  печатаем часть массива mem
+
+void log (int level, char *format, ...);            // логирование
+int  set_log_level (int level);                     // смена уровня логирования
+void error (char *format, ...);                     // вывод сообщения об ошибке
+void warning (char *format, ...);                   // вывод предупреждения
+void info (char *format, ...);                      // вывод информации
+void trace (char *format, ...);                     // трассировка
+void debug (char *format, ...);                     // отладочная печать
 
 void test_mem() {
     address a;
@@ -79,13 +98,24 @@ void test_mem() {
 }
 
 int main() {
-    // test_mem();
+    set_log_level(INFO);
 
-    load_data("data.txt");
+    int x, y;
+    scanf("%d%d", &x, &y);
 
-    mem_dump(0x40, 20);
-    printf("\n");
-    mem_dump(0x200, 0x26);
+    log(INFO, "%d + %d = %d\n", x, y, x + y - 1);
+    log(ERROR, "Oops, %d+%d=%d, not %d\n", x, y, x + y, x + y - 1);
+    log(TRACE, "Эту надпись не должны видеть\n");
+
+    int old_log_level = set_log_level(TRACE);
+
+    log(TRACE, "Visible text\n");
+    log(DEBUG, "Debug info\n");
+
+    set_log_level(old_log_level);
+
+    log(INFO, "The end!\n");
+    log(TRACE, "No code after return\n");
 
     return 0;
 }
@@ -134,4 +164,150 @@ void mem_dump(address adr, int size) {
     for (int i = 0; i < size; i += 2) {
         printf("%06o: %06o %04x\n", adr + i, w_read(adr + i), w_read(adr + i)); 
     }
+}
+
+void log(int level, char * format, ...) {
+    if (level <= log_level) {
+        va_list ap;
+        va_start(ap, format);
+        while (*format++) {
+            if (*format == '%') {
+                switch (*(++format)) {
+                    case 'd':
+                        printf("%d", va_arg(ap, int));
+                        break;
+                    case 'f':
+                        printf("%f", va_arg(ap, double));
+                        break;
+                    case 'c':
+                        printf("%c", va_arg(ap, char));
+                        break;
+                }
+            } else {
+                printf('%c', *format);
+            }
+        }
+        va_end(ap);
+    }
+}
+
+int  set_log_level (int level) {
+    int old_log_level = log_level;
+    log_level = level;
+    return old_log_level;
+}
+
+void error (char *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    while (*format++) {
+        if (*format == '%') {
+            switch (*(++format)) {
+                case 'd':
+                    printf("%d", va_arg(ap, int));
+                    break;
+                case 'f':
+                    printf("%f", va_arg(ap, double));
+                    break;
+                case 'c':
+                    printf("%c", va_arg(ap, char));
+                    break;
+            }
+        } else {
+            printf('%c', *format);
+        }
+    }
+    va_end(ap);
+}
+
+void warning (char *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    while (*format++) {
+        if (*format == '%') {
+            switch (*(++format)) {
+                case 'd':
+                    printf("%d", va_arg(ap, int));
+                    break;
+                case 'f':
+                    printf("%f", va_arg(ap, double));
+                    break;
+                case 'c':
+                    printf("%c", va_arg(ap, char));
+                    break;
+            }
+        } else {
+            printf('%c', *format);
+        }
+    }
+    va_end(ap);
+}
+
+void info (char *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    while (*format++) {
+        if (*format == '%') {
+            switch (*(++format)) {
+                case 'd':
+                    printf("%d", va_arg(ap, int));
+                    break;
+                case 'f':
+                    printf("%f", va_arg(ap, double));
+                    break;
+                case 'c':
+                    printf("%c", va_arg(ap, char));
+                    break;
+            }
+        } else {
+            printf('%c', *format);
+        }
+    }
+    va_end(ap);
+}
+
+void trace (char *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    while (*format++) {
+        if (*format == '%') {
+            switch (*(++format)) {
+                case 'd':
+                    printf("%d", va_arg(ap, int));
+                    break;
+                case 'f':
+                    printf("%f", va_arg(ap, double));
+                    break;
+                case 'c':
+                    printf("%c", va_arg(ap, char));
+                    break;
+            }
+        } else {
+            printf('%c', *format);
+        }
+    }
+    va_end(ap);
+}
+
+void debug (char *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    while (*format++) {
+        if (*format == '%') {
+            switch (*(++format)) {
+                case 'd':
+                    printf("%d", va_arg(ap, int));
+                    break;
+                case 'f':
+                    printf("%f", va_arg(ap, double));
+                    break;
+                case 'c':
+                    printf("%c", va_arg(ap, char));
+                    break;
+            }
+        } else {
+            printf('%c', *format);
+        }
+    }
+    va_end(ap);
 }
