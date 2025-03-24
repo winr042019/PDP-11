@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
+#include <stdarg.h>
 
 typedef unsigned char byte;
 typedef unsigned short int word;
@@ -7,15 +8,34 @@ typedef word address;
 
 #define MEMSIZE (64*1024)
 
+enum log_levels {
+    ERROR    = 0,
+    WARNING  = 1,
+    INFO     = 2,
+    TRACE    = 3,
+    DEBUG    = 4
+};
+
 byte mem[MEMSIZE];
 
-void b_write (address adr, byte val);        //  пишем значение (байт) val по адресу adr
-byte b_read (address adr);                   //  читаем байт по адресу adr и возвращаем его
-void w_write (address adr, word val);        //  пишем значение (слово) val по адресу adr
-word w_read (address adr);                   //  читаем слово по адресу adr и возвращаем его
-void load_file(FILE * file);                 //  считываем данные из файла
-void load_data(const char * filename);       //  считываем данные записываем их в массив mem
-void mem_dump(address adr, int size);        //  печатаем часть массива mem
+int log_level = ERROR;
+
+void b_write (address adr, byte val);                             //  пишем значение (байт) val по адресу adr
+byte b_read (address adr);                                        //  читаем байт по адресу adr и возвращаем его
+void w_write (address adr, word val);                             //  пишем значение (слово) val по адресу adr
+word w_read (address adr);                                        //  читаем слово по адресу adr и возвращаем его
+void load_file(FILE * file);                                      //  считываем данные из файла
+void load_data(const char * filename);                            //  считываем данные записываем их в массив mem
+void mem_dump(address adr, int size);                             //  печатаем часть массива mem
+
+void log (int level, char *format, ...);                          // логирование
+int  set_log_level (int level);                                   // смена уровня логирования
+
+#define error (format, ...)     log (ERROR, format, _VA_ARGS_)    // вывод сообщения об ошибке
+#define warning (format, ...)   log (WARNING, format, _VA_ARGS_)  // вывод предупреждения
+#define info (format, ...)      log (INFO, format, _VA_ARGS_)     // вывод информации
+#define trace (format, ...)     log (TRACE, format, _VA_ARGS_)    // трассировка
+#define debug (format, ...)     log (DEBUG, format, _VA_ARGS_)    // отладочная печать
 
 void test_mem() {
     address a;
@@ -134,4 +154,19 @@ void mem_dump(address adr, int size) {
     for (int i = 0; i < size; i += 2) {
         printf("%06o: %06o %04x\n", adr + i, w_read(adr + i), w_read(adr + i)); 
     }
+}
+
+void log(int level, char * format, ...) {
+    if (level > log_level)
+        return;
+    va_list ap;
+    va_start(ap, format);
+    vprintf(format, ap);
+    va_end(ap);
+}
+
+int  set_log_level (int level) {
+    int old_log_level = log_level;
+    log_level = level;
+    return old_log_level;
 }
