@@ -1,41 +1,9 @@
 #include <stdio.h>
 #include <assert.h>
-#include <stdarg.h>
 
-typedef unsigned char byte;
-typedef unsigned short int word;
-typedef word address;
-
-#define MEMSIZE (64*1024)
-
-enum log_levels {
-    ERROR    = 0,
-    WARNING  = 1,
-    INFO     = 2,
-    TRACE    = 3,
-    DEBUG    = 4
-};
-
-byte mem[MEMSIZE];
-
-int log_level = ERROR;
-
-void b_write (address adr, byte val);                             //  пишем значение (байт) val по адресу adr
-byte b_read (address adr);                                        //  читаем байт по адресу adr и возвращаем его
-void w_write (address adr, word val);                             //  пишем значение (слово) val по адресу adr
-word w_read (address adr);                                        //  читаем слово по адресу adr и возвращаем его
-void load_file(FILE * file);                                      //  считываем данные из файла
-void load_data(const char * filename);                            //  считываем данные записываем их в массив mem
-void mem_dump(address adr, int size);                             //  печатаем часть массива mem
-
-void log (int level, char *format, ...);                          // логирование
-int  set_log_level (int level);                                   // смена уровня логирования
-
-#define error (format, ...)     log (ERROR, format, _VA_ARGS_)    // вывод сообщения об ошибке
-#define warning (format, ...)   log (WARNING, format, _VA_ARGS_)  // вывод предупреждения
-#define info (format, ...)      log (INFO, format, _VA_ARGS_)     // вывод информации
-#define trace (format, ...)     log (TRACE, format, _VA_ARGS_)    // трассировка
-#define debug (format, ...)     log (DEBUG, format, _VA_ARGS_)    // отладочная печать
+#include "constants.h"
+#include "memory.h"
+#include "log.h"
 
 void test_mem() {
     address a;
@@ -99,74 +67,24 @@ void test_mem() {
 }
 
 int main() {
-    // test_mem();
+    set_log_level(INFO);
 
-    load_data("data.txt");
+    int x, y;
+    scanf("%d%d", &x, &y);
 
-    mem_dump(0x40, 20);
-    printf("\n");
-    mem_dump(0x200, 0x26);
+    log(INFO, "%d + %d = %d\n", x, y, x + y - 1);
+    log(ERROR, "Oops, %d+%d=%d, not %d\n", x, y, x + y, x + y - 1);
+    log(TRACE, "Эту надпись не должны видеть\n");
+
+    int old_log_level = set_log_level(TRACE);
+
+    log(TRACE, "Visible text\n");
+    log(DEBUG, "Debug info\n");
+
+    set_log_level(old_log_level);
+
+    log(INFO, "The end!\n");
+    log(TRACE, "No code after return\n");
 
     return 0;
-}
-
-void b_write (address adr, byte val) {
-    mem[adr] = val;
-}
-
-byte b_read (address adr) {
-    return mem[adr];
-}
-
-void w_write (address adr, word val) {
-    mem[adr] = val & 255;
-    mem[adr + 1] = val >> 8;
-}
-
-word w_read (address adr) {
-    word w = mem[adr + 1] << 8;
-    w |= mem[adr] & 255;
-    return w & 0xFFFF;
-}
-
-void load_file(FILE * file) {
-    address adr = 0;
-    int N = 0;
-    byte b = 0;
-    while (fscanf(file, "%hx", &adr) != EOF) {
-        fscanf(file, "%x", &N);
-        for (int i = 0; i < N; i++) {
-            fscanf(file, "%02hhx", &b);
-            b_write(adr + i, b);
-        }
-    }
-}
-
-void load_data(const char * filename) {
-    FILE * file  = fopen(filename, "r");
-    if (file == NULL)
-        perror(filename);
-    load_file(file);
-    fclose(file);
-}
-
-void mem_dump(address adr, int size) {
-    for (int i = 0; i < size; i += 2) {
-        printf("%06o: %06o %04x\n", adr + i, w_read(adr + i), w_read(adr + i)); 
-    }
-}
-
-void log(int level, char * format, ...) {
-    if (level > log_level)
-        return;
-    va_list ap;
-    va_start(ap, format);
-    vprintf(format, ap);
-    va_end(ap);
-}
-
-int  set_log_level (int level) {
-    int old_log_level = log_level;
-    log_level = level;
-    return old_log_level;
 }
