@@ -72,19 +72,19 @@ int main() {
     int x, y;
     scanf("%d%d", &x, &y);
 
-    log(INFO, "%d + %d = %d\n", x, y, x + y - 1);
-    log(ERROR, "Oops, %d+%d=%d, not %d\n", x, y, x + y, x + y - 1);
-    log(TRACE, "Эту надпись не должны видеть\n");
+    my_log(INFO, "%d + %d = %d\n", x, y, x + y - 1);
+    my_log(ERROR, "Oops, %d+%d=%d, not %d\n", x, y, x + y, x + y - 1);
+    my_log(TRACE, "Эту надпись не должны видеть\n");
 
     int old_log_level = set_log_level(TRACE);
 
-    log(TRACE, "Visible text\n");
-    log(DEBUG, "Debug info\n");
+    my_log(TRACE, "Visible text\n");
+    my_log(DEBUG, "Debug info\n");
 
     set_log_level(old_log_level);
 
-    log(INFO, "The end!\n");
-    log(TRACE, "No code after return\n");
+    my_log(INFO, "The end!\n");
+    my_log(TRACE, "No code after return\n");
 
     return 0;
 }

@@ -5,7 +5,7 @@
 
 int log_level = ERROR;
 
-void log(int level, char * format, ...) {
+void my_log(int level, char * format, ...) {
     if (level > log_level)
         return;
     va_list ap;
