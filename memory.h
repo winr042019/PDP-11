@@ -5,6 +5,9 @@
 
 #include "constants.h"
 
+extern word reg[REGSIZE];
+#define pc reg[7]
+
 void b_write (address adr, byte val);                       //  пишем значение (байт) val по адресу adr
 byte b_read (address adr);                                  //  читаем байт по адресу adr и возвращаем его
 void w_write (address adr, word val);                       //  пишем значение (слово) val по адресу adr

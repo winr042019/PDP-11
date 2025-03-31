@@ -5,6 +5,14 @@ typedef unsigned char byte;
 typedef unsigned short int word;
 typedef word address;
 
+typedef struct {
+    word mask;
+    word opcode;
+    char * name;
+    void (*do_command)(void);
+} Command;
+
+#define REGSIZE 8
 #define MEMSIZE (64*1024)
 
 enum log_levels {

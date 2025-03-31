@@ -5,6 +5,8 @@
 
 static byte mem[MEMSIZE];
 
+word reg[REGSIZE];
+
 void b_write (address adr, byte val) {
     mem[adr] = val;
 }
