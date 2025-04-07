@@ -5,6 +5,8 @@
 
 int log_level = ERROR;
 
+extern word reg[REGSIZE];
+
 void my_log(int level, char * format, ...) {
     if (level > log_level)
         return;
@@ -18,4 +20,12 @@ int  set_log_level (int level) {
     int old_log_level = log_level;
     log_level = level;
     return old_log_level;
+}
+
+void reg_dump() {
+    my_log(TRACE, "\n");
+    for (int i = 0; i < REGSIZE; i++) {
+        my_log(TRACE, "r%d:%o ", i, reg[i]);
+    }
+    my_log(TRACE, "\n");
 }

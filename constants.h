@@ -10,7 +10,13 @@ typedef struct {
     word opcode;
     char * name;
     void (*do_command)(void);
+    char params;
 } Command;
+
+typedef struct {
+    word value;
+    address addr;
+} Argument;
 
 #define REGSIZE 8
 #define MEMSIZE (64*1024)
@@ -21,6 +27,12 @@ enum log_levels {
     INFO     = 2,
     TRACE    = 3,
     DEBUG    = 4
+};
+
+enum command_params {
+    NO_PARAMS = 0,
+    HAS_DD    = 1,
+    HAS_SS    = 2
 };
 
 #endif

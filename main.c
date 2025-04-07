@@ -6,21 +6,14 @@
 #include "log.h"
 #include "command.h"
 
+extern word reg[REGSIZE];
+
 void run() {
     pc = 01000;
-    word w = 0;
+    Command cmd;
     while (1) {
-        my_log(TRACE, "%06o ", pc);
-        w = w_read(pc);
-        pc += 2;
-        my_log(TRACE, "%06o : ", w);
-        for (int i = 0; ; i++) {
-            if ((w & command[i].mask) == command[i].opcode) {
-                my_log(TRACE, "%s\n", command[i].name);
-                command[i].do_command();
-                break;
-            }
-        }
+        cmd = parse_cmd(read_cmd()); // читаем слово и разбираем команду
+        cmd.do_command(); 
     }
 }
 
