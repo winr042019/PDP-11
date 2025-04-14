@@ -32,7 +32,9 @@ enum log_levels {
 enum command_params {
     NO_PARAMS = 0,
     HAS_DD    = 1,
-    HAS_SS    = 2
+    HAS_SS    = 2,
+    HAS_R     = 4,
+    HAS_NN    = 8
 };
 
 #endif
