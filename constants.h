@@ -3,6 +3,7 @@
 
 typedef unsigned char byte;
 typedef unsigned short int word;
+typedef unsigned int dword;
 typedef word address;
 
 typedef struct {
@@ -31,10 +32,18 @@ enum log_levels {
 
 enum command_params {
     NO_PARAMS = 0,
-    HAS_DD    = 1,
-    HAS_SS    = 2,
-    HAS_R     = 4,
-    HAS_NN    = 8
+    BYTE      = 1,
+    HAS_DD    = 2,
+    HAS_SS    = 4,
+    HAS_R     = 8,
+    HAS_NN    = 16
+};
+
+enum flag_values {
+    N = 0,
+    Z = 1, 
+    C = 2,
+    V = 4
 };
 
 #endif

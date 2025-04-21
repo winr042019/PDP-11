@@ -14,5 +14,7 @@ void do_halt();
 void do_mov();
 void do_sob();
 void do_unknown();
+void set_nz(dword res);
+void set_c(dword res);
 
 #endif

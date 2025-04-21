@@ -20,7 +20,7 @@ void run() {
 
 int main() {
     set_log_level(TRACE);
-    load_data("./tests/02_sob_mode3/02_sob_mode3.pdp.o");
+    load_data("./tests/02_sob_byte/02_sob_byte.pdp.o");
     run();
 
     return 0;
