@@ -36,7 +36,8 @@ enum command_params {
     HAS_DD    = 2,
     HAS_SS    = 4,
     HAS_R     = 8,
-    HAS_NN    = 16
+    HAS_NN    = 16,
+    HAS_XX    = 32
 };
 
 enum flag_values {

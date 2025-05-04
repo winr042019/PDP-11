@@ -7,11 +7,13 @@
 
 Argument ss, dd;
 int r, nn;
+char xx;
 char is_byte;
 char flags;         // NZVC
 
 #define Npos    (1<<3)
 #define Zpos    (1<<2)
+#define Vpos    (1<<1)
 #define Cpos    (1)
 #define SETN(x) ((x) | Npos)
 #define CLRN(x) ((x) & ~Npos)
@@ -28,6 +30,23 @@ extern word reg[REGSIZE];
 
 Command command[] = {
     {0170000, 0060000, "add",     do_add,     HAS_DD | HAS_SS        },
+    {0177700, 0103000, "bcc",     do_bcc,     HAS_XX                 },
+    {0177700, 0103400, "bcs",     do_bcs,     HAS_XX                 },
+    {0177700, 0001400, "beq",     do_beq,     HAS_XX                 },
+    {0177700, 0002000, "bge",     do_bge,     HAS_XX                 },
+    {0177700, 0003000, "bgt",     do_bgt,     HAS_XX                 },
+    {0177700, 0101000, "bhi",     do_bhi,     HAS_XX                 },
+    {0177700, 0103000, "bhis",    do_bhis,    HAS_XX                 },
+    {0177700, 0003400, "ble",     do_ble,     HAS_XX                 },
+    {0177700, 0002400, "blt",     do_blt,     HAS_XX                 },
+    {0177700, 0103400, "blo",     do_blo,     HAS_XX                 },
+    {0177700, 0101400, "blos",    do_blos,    HAS_XX                 },
+    {0177700, 0100400, "bmi",     do_bmi,     HAS_XX                 },
+    {0177700, 0001000, "bne",     do_bne,     HAS_XX                 },
+    {0177700, 0100000, "bpl",     do_bpl,     HAS_XX                 },
+    {0177700, 0000400, "br",      do_br,      HAS_XX                 },
+    {0177700, 0102000, "bvc",     do_bvc,     HAS_XX                 },
+    {0177700, 0102400, "bvs",     do_bvs,     HAS_XX                 },
     {0077700, 0005000, "clr",     do_clr,     HAS_DD                 },
     {0170000, 0010000, "mov",     do_mov,     HAS_DD | HAS_SS        },
     {0170000, 0110000, "movb",    do_mov,     BYTE | HAS_DD | HAS_SS },
@@ -109,6 +128,9 @@ Command parse_cmd(word cmd) {
                 nn = cmd & 077;
                 my_log(TRACE, "#%o ", pc - (nn << 1));
             }
+            if (command[i].params & HAS_XX) {
+                xx = cmd & 077;
+            }
             return command[i];
         }
     }
@@ -122,6 +144,90 @@ void do_add() {
         w_write(dd.addr, res);
     set_nz(res);
     set_c(res);
+}
+
+void do_bcc() {
+    if (!(flags & Cpos))
+        do_br();
+}
+
+void do_bcs() {
+    if (flags & Cpos)
+        do_br();
+}
+
+void do_beq() {
+    if (flags & Zpos)
+        do_br();
+}
+
+void do_bge() {
+    if (!((flags & Npos) & (flags & Vpos)))
+        do_br();
+}
+
+void do_bgt() {
+    if (!((flags & Zpos) | ((flags & Npos) & (flags & Vpos))))
+        do_br();
+}
+
+void do_bhi() {
+    if (!((flags & Cpos) | (flags & Zpos)))
+        do_br();
+}
+
+void do_bhis() {
+    if (!(flags & Cpos))
+        do_br();
+}
+
+void do_ble() {
+    if ((flags & Zpos) | ((flags & Npos) & (flags & Vpos)))
+        do_br();
+}
+
+void do_blt() {
+    if ((flags & Npos) & (flags & Vpos))
+        do_br();
+}
+
+void do_blo() {
+    if (flags & Cpos)
+        do_br();
+}
+
+void do_blos() {
+    if ((flags & Cpos) | (flags & Zpos))
+        do_br();
+}
+
+void do_bmi() {
+    if (flags & Npos)
+        do_br();
+}
+
+void do_bne() {
+    if (!(flags & Zpos))
+        do_br();
+}
+
+void do_bpl() {
+    if (!(flags & Npos))
+        do_br();
+}
+
+void do_br() {
+    pc = pc + xx * 2;
+}
+
+void do_bvc() {
+    if (!(flags & Vpos))
+        do_br();
+}
+
+void do_bvs() {
+    if (flags & Vpos)
+        do_br();
 }
 
 void do_clr() {
