@@ -11,10 +11,13 @@ word reg[REGSIZE];
 
 void b_write (address adr, byte val) {
     if (adr < 8) {
-        reg[adr] = (val & 0x100) == 0x100 ? val | 0xFF : val & 0xF;
+        reg[adr] = (val & 0x100) == 0x100 ? val | 0xFF : val & 0xFF;
     }
     else {
         mem[adr] = val;
+        if (adr == ODATA) {
+            fputc(val, stderr);
+        }
     }
 }
 

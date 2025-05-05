@@ -2,6 +2,7 @@
 #include <stdarg.h>
 
 #include "constants.h"
+#include "command.h"
 
 int log_level = ERROR;
 
@@ -23,6 +24,11 @@ int  set_log_level (int level) {
 }
 
 void reg_dump() {
+    my_log(TRACE, "\n");
+    my_log(TRACE, flags & Npos ? "N" : "-");
+    my_log(TRACE, flags & Zpos ? "Z" : "-");
+    my_log(TRACE, flags & Vpos ? "V" : "-");
+    my_log(TRACE, flags & Cpos ? "C" : "-");
     my_log(TRACE, "\n");
     for (int i = 0; i < REGSIZE; i++) {
         my_log(TRACE, "r%d:%o ", i, reg[i]);

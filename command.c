@@ -6,15 +6,11 @@
 #include "memory.h"
 
 Argument ss, dd;
-int r, nn;
+unsigned int r, nn;
 char xx;
 char is_byte;
 char flags;         // NZVC
 
-#define Npos    (1<<3)
-#define Zpos    (1<<2)
-#define Vpos    (1<<1)
-#define Cpos    (1)
 #define SETN(x) ((x) | Npos)
 #define CLRN(x) ((x) & ~Npos)
 #define WSIGN   (1 << 15)
@@ -23,6 +19,8 @@ char flags;         // NZVC
 #define CLRZ(x) ((x) & ~Zpos)
 #define WCARRY  (1 << 16)
 #define BCARRY  (1 << 8)
+#define SETV(x) ((x) | Vpos)
+#define CLRV(x) ((x) & ~Vpos)
 #define SETC(x) ((x) | Cpos)
 #define CLRC(x) ((x) & ~Cpos)
 
@@ -30,29 +28,31 @@ extern word reg[REGSIZE];
 
 Command command[] = {
     {0170000, 0060000, "add",     do_add,     HAS_DD | HAS_SS        },
-    {0177700, 0103000, "bcc",     do_bcc,     HAS_XX                 },
-    {0177700, 0103400, "bcs",     do_bcs,     HAS_XX                 },
-    {0177700, 0001400, "beq",     do_beq,     HAS_XX                 },
-    {0177700, 0002000, "bge",     do_bge,     HAS_XX                 },
-    {0177700, 0003000, "bgt",     do_bgt,     HAS_XX                 },
-    {0177700, 0101000, "bhi",     do_bhi,     HAS_XX                 },
-    {0177700, 0103000, "bhis",    do_bhis,    HAS_XX                 },
-    {0177700, 0003400, "ble",     do_ble,     HAS_XX                 },
-    {0177700, 0002400, "blt",     do_blt,     HAS_XX                 },
-    {0177700, 0103400, "blo",     do_blo,     HAS_XX                 },
-    {0177700, 0101400, "blos",    do_blos,    HAS_XX                 },
-    {0177700, 0100400, "bmi",     do_bmi,     HAS_XX                 },
-    {0177700, 0001000, "bne",     do_bne,     HAS_XX                 },
-    {0177700, 0100000, "bpl",     do_bpl,     HAS_XX                 },
-    {0177700, 0000400, "br",      do_br,      HAS_XX                 },
-    {0177700, 0102000, "bvc",     do_bvc,     HAS_XX                 },
-    {0177700, 0102400, "bvs",     do_bvs,     HAS_XX                 },
+    {0xFF00,  0103000, "bcc",     do_bcc,     HAS_XX                 },
+    {0xFF00,  0103400, "bcs",     do_bcs,     HAS_XX                 },
+    {0xFF00,  0001400, "beq",     do_beq,     HAS_XX                 },
+    {0xFF00,  0002000, "bge",     do_bge,     HAS_XX                 },
+    {0xFF00,  0003000, "bgt",     do_bgt,     HAS_XX                 },
+    {0xFF00,  0101000, "bhi",     do_bhi,     HAS_XX                 },
+    {0xFF00,  0103000, "bhis",    do_bhis,    HAS_XX                 },
+    {0xFF00,  0003400, "ble",     do_ble,     HAS_XX                 },
+    {0xFF00,  0002400, "blt",     do_blt,     HAS_XX                 },
+    {0xFF00,  0103400, "blo",     do_blo,     HAS_XX                 },
+    {0xFF00,  0101400, "blos",    do_blos,    HAS_XX                 },
+    {0xFF00,  0100400, "bmi",     do_bmi,     HAS_XX                 },
+    {0xFF00,  0001000, "bne",     do_bne,     HAS_XX                 },
+    {0xFF00,  0100000, "bpl",     do_bpl,     HAS_XX                 },
+    {0xFF00,  0000400, "br",      do_br,      HAS_XX                 },
+    {0xFF00,  0102000, "bvc",     do_bvc,     HAS_XX                 },
+    {0xFF00,  0102400, "bvs",     do_bvs,     HAS_XX                 },
     {0077700, 0005000, "clr",     do_clr,     HAS_DD                 },
     {0177777, 0000000, "halt",    do_halt,    NO_PARAMS              },
     {0177700, 0000100, "jmp",     do_jmp,     HAS_DD                 },
     {0170000, 0010000, "mov",     do_mov,     HAS_DD | HAS_SS        },
     {0170000, 0110000, "movb",    do_mov,     BYTE | HAS_DD | HAS_SS },
     {0177000, 0077000, "sob",     do_sob,     HAS_R | HAS_NN         },
+    {0177700, 0005700, "tst",     do_tst,     HAS_DD                 },
+    {0177700, 0105700, "tstb",    do_tst,     BYTE | HAS_DD          },
     {0000000, 0000000, "unknown", do_unknown, NO_PARAMS              } // LAST
 };
 
@@ -88,9 +88,24 @@ Argument get_arg(word w) {
         arg.value = w_read(arg.addr);
         reg[rg] += 2;
         if (rg == 7)
-            my_log(TRACE, "@#%o ", arg.value);
+            my_log(TRACE, "@#%o ", arg.addr);
         else
             my_log(TRACE, "@(R%d)+ ", rg);
+        break;
+    case 4:
+        if (is_byte && rg < 6)
+            reg[rg] -= 1;
+        else
+            reg[rg] -= 2;
+        arg.addr = reg[rg];
+        arg.value = w_read(arg.addr);
+        my_log(TRACE, "-(R%d) ", rg);
+        break;
+    case 5:
+        reg[rg] -= 2;
+        arg.addr = w_read(reg[rg]);
+        arg.value = w_read(arg.addr);
+        my_log(TRACE, "@-(R%d) ", rg);
         break;
     default:
         my_log(TRACE, "%d not implemented\n", m);
@@ -113,8 +128,6 @@ Command parse_cmd(word cmd) {
         if ((cmd & command[i].mask) == command[i].opcode) {
             my_log(TRACE, "%s ", command[i].name);
             is_byte = command[i].params & BYTE;
-            if (is_byte)
-                my_log(TRACE, "byte ");
             if (command[i].params & HAS_SS) {
                 ss = get_arg(cmd >> 6);
             } 
@@ -130,7 +143,7 @@ Command parse_cmd(word cmd) {
                 my_log(TRACE, "#%o ", pc - (nn << 1));
             }
             if (command[i].params & HAS_XX) {
-                xx = cmd & 077;
+                xx = cmd & 0xFF;
             }
             return command[i];
         }
@@ -256,11 +269,20 @@ void do_mov() {
         b_write(dd.addr, ss.value);
     else
         w_write(dd.addr, ss.value);
+    printf("ss.val = %o\n", ss.value);
+    set_nz(ss.value);
+    flags = CLRV(flags);
 }
 
 void do_sob() {
     if (--reg[r])
         pc = pc - (nn << 1);
+}
+
+void do_tst() {
+    set_nz(dd.value);
+    flags = CLRV(flags);
+    flags = CLRC(flags);
 }
 
 void do_unknown() {
@@ -272,7 +294,7 @@ void set_nz(dword res) {
         flags = res & BSIGN ? SETN(flags) : CLRN(flags);
     else
         flags = res & WSIGN ? SETN(flags) : CLRN(flags);
-    flags = res ? SETZ(flags) : CLRZ(flags);
+    flags = !res ? SETZ(flags) : CLRZ(flags);
 }
 
 void set_c(dword res) {

@@ -22,6 +22,14 @@ typedef struct {
 #define REGSIZE 8
 #define MEMSIZE (64*1024)
 
+#define OSTAT 0177564
+#define ODATA 0177566
+
+#define Npos    (1<<3)
+#define Zpos    (1<<2)
+#define Vpos    (1<<1)
+#define Cpos    (1)
+
 enum log_levels {
     ERROR    = 0,
     WARNING  = 1,

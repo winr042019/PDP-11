@@ -4,6 +4,7 @@
 #include "constants.h"
 
 extern Command command[];
+extern char flags;
 
 Argument get_arg(word w);
 word read_cmd();
@@ -31,6 +32,7 @@ void do_halt();
 void do_jmp();
 void do_mov();
 void do_sob();
+void do_tst();
 void do_unknown();
 void set_nz(dword res);
 void set_c(dword res);
