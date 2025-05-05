@@ -28,6 +28,7 @@ void do_bvc();
 void do_bvs();
 void do_clr();
 void do_halt();
+void do_jmp();
 void do_mov();
 void do_sob();
 void do_unknown();

@@ -48,9 +48,10 @@ Command command[] = {
     {0177700, 0102000, "bvc",     do_bvc,     HAS_XX                 },
     {0177700, 0102400, "bvs",     do_bvs,     HAS_XX                 },
     {0077700, 0005000, "clr",     do_clr,     HAS_DD                 },
+    {0177777, 0000000, "halt",    do_halt,    NO_PARAMS              },
+    {0177700, 0000100, "jmp",     do_jmp,     HAS_DD                 },
     {0170000, 0010000, "mov",     do_mov,     HAS_DD | HAS_SS        },
     {0170000, 0110000, "movb",    do_mov,     BYTE | HAS_DD | HAS_SS },
-    {0177777, 0000000, "halt",    do_halt,    NO_PARAMS              },
     {0177000, 0077000, "sob",     do_sob,     HAS_R | HAS_NN         },
     {0000000, 0000000, "unknown", do_unknown, NO_PARAMS              } // LAST
 };
@@ -235,12 +236,19 @@ void do_clr() {
         reg[dd.addr] = 0;
     else
         w_write(dd.addr, 0);
+    flags = CLRN(flags);
+    flags = SETZ(flags);
+    flags = CLRC(flags);
 }
 
 void do_halt() {
     reg_dump();
     my_log(TRACE, "END\n");
     exit(0);
+}
+
+void do_jmp() {
+    pc = dd.value;
 }
 
 void do_mov() {
