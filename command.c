@@ -289,8 +289,10 @@ void do_jmp() {
 }
 
 void do_jsr() {
+    sp -= 2;
+    w_write(sp, w_read(r));
     w_write(r, pc);
-    pc = dd.value;
+    pc = dd.addr;
 }
 
 void do_mov() {

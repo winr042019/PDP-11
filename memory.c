@@ -11,7 +11,7 @@ word reg[REGSIZE];
 
 void b_write (address adr, byte val) {
     if (adr < 8) {
-        reg[adr] = (val & 0x100) == 0x100 ? val | 0xFF : val & 0xFF;
+        reg[adr] = (val & (1 << 7)) == (1 << 7) ? val | 0xFF00 : val & 0xFF;
     }
     else {
         mem[adr] = val;
