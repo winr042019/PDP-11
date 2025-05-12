@@ -22,7 +22,7 @@ void run() {
 
 int main() {
     set_log_level(TRACE);
-    load_data("./tests/08_hello/08_hello.pdp.o");
+    load_data("./tests/02_sob_byte/02_sob_byte.pdp.o");
     run();
 
     return 0;

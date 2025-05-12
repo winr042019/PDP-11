@@ -7,6 +7,7 @@
 
 extern word reg[REGSIZE];
 #define pc reg[7]
+#define sp reg[6]
 
 void b_write (address adr, byte val);                       //  пишем значение (байт) val по адресу adr
 byte b_read (address adr);                                  //  читаем байт по адресу adr и возвращаем его

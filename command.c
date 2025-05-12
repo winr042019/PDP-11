@@ -48,8 +48,10 @@ Command command[] = {
     {0077700, 0005000, "clr",     do_clr,     HAS_DD                 },
     {0177777, 0000000, "halt",    do_halt,    NO_PARAMS              },
     {0177700, 0000100, "jmp",     do_jmp,     HAS_DD                 },
+    {0177000, 0004000, "jsr",     do_jsr,     HAS_R | HAS_DD         },
     {0170000, 0010000, "mov",     do_mov,     HAS_DD | HAS_SS        },
     {0170000, 0110000, "movb",    do_mov,     BYTE | HAS_DD | HAS_SS },
+    {0177770, 0000200, "rts",     do_rts,     HAS_R                  },
     {0177000, 0077000, "sob",     do_sob,     HAS_R | HAS_NN         },
     {0177700, 0005700, "tst",     do_tst,     HAS_DD                 },
     {0177700, 0105700, "tstb",    do_tst,     BYTE | HAS_DD          },
@@ -60,6 +62,7 @@ Argument get_arg(word w) {
     Argument arg;
     int rg = w & 7;
     int m = (w >> 3) & 7;
+    int x;
     switch (m) {
     case 0:
         arg.addr = rg;
@@ -107,6 +110,21 @@ Argument get_arg(word w) {
         arg.value = w_read(arg.addr);
         my_log(TRACE, "@-(R%d) ", rg);
         break;
+    case 6:
+        x = w_read(pc);
+        pc += 2;
+        arg.addr = reg[rg];
+        arg.addr += x;
+        arg.value = w_read(arg.addr);
+        my_log(TRACE, "%d(R%d) ", x, rg);
+        break;
+    case 7:
+        x = w_read(pc);
+        pc += 2;
+        arg.addr = w_read(reg[rg] + x);
+        arg.value = w_read(arg.addr);
+        my_log(TRACE, "@%d(R%d) ", x, rg);
+        break;
     default:
         my_log(TRACE, "%d not implemented\n", m);
         exit(1);
@@ -129,13 +147,19 @@ Command parse_cmd(word cmd) {
             my_log(TRACE, "%s ", command[i].name);
             is_byte = command[i].params & BYTE;
             if (command[i].params & HAS_SS) {
-                ss = get_arg(cmd >> 6);
+                if (!(command[i].params & HAS_DD))
+                    ss = get_arg(cmd);
+                else
+                    ss = get_arg(cmd >> 6);
             } 
             if (command[i].params & HAS_DD) {
                 dd = get_arg(cmd);
             }
             if (command[i].params & HAS_R) {
-                r = (cmd >> 6) & 7;
+                if (!(command[i].params ^ HAS_R))
+                    r = cmd & 7;
+                else
+                    r = (cmd >> 6) & 7;
                 my_log(TRACE, "R%d ", r);
             } 
             if (command[i].params & HAS_NN) {
@@ -264,6 +288,11 @@ void do_jmp() {
     pc = dd.value;
 }
 
+void do_jsr() {
+    w_write(r, pc);
+    pc = dd.value;
+}
+
 void do_mov() {
     if (is_byte)
         b_write(dd.addr, ss.value);
@@ -272,6 +301,12 @@ void do_mov() {
     printf("ss.val = %o\n", ss.value);
     set_nz(ss.value);
     flags = CLRV(flags);
+}
+
+void do_rts() {
+    pc = w_read(r);
+    w_write(r, w_read(sp));
+    sp += 2;
 }
 
 void do_sob() {
